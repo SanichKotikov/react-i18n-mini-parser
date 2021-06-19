@@ -1,0 +1,32 @@
+{
+  "name": "react-i18n-mini-parser",
+  "version": "0.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "sideEffects": false,
+  "scripts": {
+    "start": "tsc --watch",
+    "build": "tsc",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SanichKotikov/react-i18n-mini-parser.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SanichKotikov/react-i18n-mini-parser/issues"
+  },
+  "homepage": "https://github.com/SanichKotikov/react-i18n-mini-parser",
+  "author": "Sanich Kotikov <sancho@cdrpro.ru> (https://sanichkotikov.github.io)",
+  "license": "MIT",
+  "files": [
+    "lib"
+  ],
+  "keywords": [],
+  "devDependencies": {
+    "@types/jest": "26.0.23",
+    "jest": "27.0.4",
+    "ts-jest": "27.0.3",
+    "typescript": "4.3.2"
+  }
+}
