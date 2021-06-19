@@ -1,8 +1,6 @@
 import ts from 'typescript';
-import type { Messages, ParserOptions } from './types';
-
-const DEFINE_NAMES: readonly string[] = ['defineMessages'];
-const TRANSLATE_NAMES: readonly string[] = ['t', 'Text'];
+import { getName, isJsx, isString } from './utils';
+import type { ExtOptions, Messages, Options } from './types';
 
 const TS_OPTIONS: ts.CompilerOptions = {
   allowJs: true,
@@ -11,43 +9,34 @@ const TS_OPTIONS: ts.CompilerOptions = {
   jsx: ts.JsxEmit.ReactJSX,
 };
 
-function getNodeName(node: ts.CallExpression | ts.JsxOpeningElement | ts.JsxSelfClosingElement): string {
-  if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression))
-    return node.expression.name.text;
-  if (ts.isCallExpression(node) && ts.isIdentifier(node.expression))
-    return node.expression.text;
-  if ((ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) && ts.isIdentifier(node.tagName))
-    return node.tagName.text;
-  return '';
-}
+const DEFAULT_OPTIONS: Readonly<Options> = {
+  idPropName: 'id',
+  messagePropName: 'message',
+  translateNames: ['t', 'Text'],
+  defineFunctionNames: ['defineMessages'],
+};
 
 function extractMessageFromProps(
   properties: ts.NodeArray<ts.ObjectLiteralElementLike | ts.JsxAttributeLike>,
-  options: Readonly<ParserOptions>,
+  options: Readonly<ExtOptions>,
 ) {
   let id = '';
   let message = '';
 
-  for (const prop of properties) {
-    if ((ts.isPropertyAssignment(prop) || ts.isJsxAttribute(prop)) && ts.isIdentifier(prop.name) && prop.initializer) {
-      if (
-        ts.isJsxExpression(prop.initializer) &&
-        prop.initializer.expression &&
-        (
-          ts.isStringLiteral(prop.initializer.expression) ||
-          ts.isNoSubstitutionTemplateLiteral(prop.initializer.expression)
-        )
-      ) {
-        if (prop.name.text === 'id') id = prop.initializer.expression.text;
-        else if (prop.name.text === 'message') message = prop.initializer.expression.text;
-      }
-      else if (ts.isStringLiteral(prop.initializer) || ts.isNoSubstitutionTemplateLiteral(prop.initializer)) {
-        if (prop.name.text === 'id') id = prop.initializer.text;
-        else if (prop.name.text === 'message') message = prop.initializer.text;
-      }
-    }
+  function extract(name: string, node: { text: string }): void {
+    if (name === options.idPropName) id = node.text;
+    else if (name === options.messagePropName) message = node.text;
+  }
 
-    if (id && message) break;
+  for (const prop of properties) {
+    if (!ts.isPropertyAssignment(prop) && !ts.isJsxAttribute(prop)) continue;
+    const { name, initializer } = prop;
+
+    if (ts.isIdentifier(name) && initializer) {
+      if (ts.isJsxExpression(initializer) && initializer.expression && isString(initializer.expression))
+        extract(name.text, initializer.expression);
+      else if (isString(initializer)) extract(name.text, initializer);
+    }
   }
 
   if (id && message) options.onMessageFound(id, message);
@@ -55,7 +44,7 @@ function extractMessageFromProps(
 
 function extractMessageFromDefine(
   properties: ts.NodeArray<ts.ObjectLiteralElementLike>,
-  options: Readonly<ParserOptions>,
+  options: Readonly<ExtOptions>,
 ) {
   properties.forEach(prop => {
     if (ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name)) {
@@ -66,13 +55,15 @@ function extractMessageFromDefine(
   });
 }
 
-function extractFromCall(node: ts.CallExpression, options: Readonly<ParserOptions>) {
-  const funcName = getNodeName(node);
-  if (TRANSLATE_NAMES.includes(funcName) || DEFINE_NAMES.includes(funcName)) {
+function extractFromCall(node: ts.CallExpression, options: Readonly<ExtOptions>) {
+  const funcName = getName(node);
+  const { translateNames, defineFunctionNames } = options;
+
+  if (translateNames.includes(funcName) || defineFunctionNames.includes(funcName)) {
     const argument = node.arguments[0];
 
     if (argument && ts.isObjectLiteralExpression(argument)) {
-      if (DEFINE_NAMES.includes(funcName)) extractMessageFromDefine(argument.properties, options);
+      if (defineFunctionNames.includes(funcName)) extractMessageFromDefine(argument.properties, options);
       else extractMessageFromProps(argument.properties, options);
     }
   }
@@ -80,29 +71,33 @@ function extractFromCall(node: ts.CallExpression, options: Readonly<ParserOption
 
 function extractFromJSX(
   node: ts.JsxOpeningElement | ts.JsxSelfClosingElement,
-  options: Readonly<ParserOptions>,
+  options: Readonly<ExtOptions>,
 ) {
-  if (TRANSLATE_NAMES.includes(getNodeName(node))) {
+  if (options.translateNames.includes(getName(node))) {
     extractMessageFromProps(node.attributes.properties, options);
   }
 }
 
-function getVisitor(context: ts.TransformationContext, options: Readonly<ParserOptions>) {
+function getVisitor(context: ts.TransformationContext, options: Readonly<ExtOptions>) {
   function visitor(node: ts.Node): ts.Node {
     if (ts.isCallExpression(node)) extractFromCall(node, options);
-    else if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) extractFromJSX(node, options);
+    else if (isJsx(node)) extractFromJSX(node, options);
     return ts.visitEachChild(node, visitor, context);
   }
 
   return visitor;
 }
 
-export function parse(source: string): Readonly<Messages> {
+export function parse(source: string, options?: Partial<Readonly<Options>>): Readonly<Messages> {
   const messages: Messages = {};
 
-  function onMessageFound(id: string, message: string): void {
-    messages[id] = message;
-  }
+  const opts: Readonly<ExtOptions> = {
+    ...DEFAULT_OPTIONS,
+    ...options,
+    onMessageFound: (id: string, message: string): void => {
+      messages[id] = message;
+    },
+  };
 
   ts.transpileModule(source, {
     compilerOptions: TS_OPTIONS,
@@ -111,7 +106,7 @@ export function parse(source: string): Readonly<Messages> {
       before: [
         (context: ts.TransformationContext) => (
           (sf: ts.SourceFile): ts.SourceFile => (
-            ts.visitNode(sf, getVisitor(context, { onMessageFound }))
+            ts.visitNode(sf, getVisitor(context, opts))
           )
         ),
       ],
