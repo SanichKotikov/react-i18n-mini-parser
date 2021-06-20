@@ -47,12 +47,8 @@ function extractMessagesFromDefine(
   options: Readonly<ExtOptions>,
 ) {
   properties.forEach(prop => {
-    // (ts.isIdentifier(prop.name) || ts.isStringLiteral(prop.name) || ts.isComputedPropertyName(prop.name))
-    if (ts.isPropertyAssignment(prop)) {
-      if (ts.isObjectLiteralExpression(prop.initializer)) {
-        extractMessageFromProps(prop.initializer.properties, options);
-      }
-    }
+    if (ts.isPropertyAssignment(prop) && ts.isObjectLiteralExpression(prop.initializer))
+      extractMessageFromProps(prop.initializer.properties, options);
   });
 }
 

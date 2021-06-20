@@ -1,7 +1,7 @@
 {
   "name": "react-i18n-mini-parser",
-  "version": "0.3.0",
-  "description": "NodeJS module for extracting i18n (react-i18n-mini) messages",
+  "version": "0.3.1",
+  "description": "NodeJS module for extracting default i18n messages from a project files where using react-i18n-mini.",
   "main": "lib/index.js",
   "sideEffects": false,
   "scripts": {
@@ -22,7 +22,18 @@
   "files": [
     "lib"
   ],
-  "keywords": [],
+  "keywords": [
+    "intl",
+    "i18n",
+    "internationalization",
+    "locale",
+    "localization",
+    "globalization",
+    "format",
+    "formatting",
+    "translate",
+    "translation"
+  ],
   "devDependencies": {
     "@types/jest": "26.0.23",
     "jest": "27.0.4",
