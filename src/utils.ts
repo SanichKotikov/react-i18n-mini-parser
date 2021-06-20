@@ -1,4 +1,5 @@
 import ts from 'typescript';
+import type { Messages } from './types';
 
 type JsxElement = ts.JsxOpeningElement | ts.JsxSelfClosingElement;
 
@@ -15,4 +16,13 @@ export function getName(node: ts.CallExpression | JsxElement): string {
   if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) return node.expression.text;
   if (isJsx(node) && ts.isIdentifier(node.tagName)) return node.tagName.text;
   return '';
+}
+
+export function sort(messages: Readonly<Messages>): Readonly<Messages> {
+  return Object.keys(messages)
+    .sort((a, b) => a.localeCompare(b))
+    .reduce<Messages>((acc, key) => {
+      acc[key] = messages[key]!;
+      return acc;
+    }, {});
 }
