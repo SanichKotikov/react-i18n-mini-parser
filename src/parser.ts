@@ -42,12 +42,13 @@ function extractMessageFromProps(
   if (id && message) options.onMessageFound(id, message);
 }
 
-function extractMessageFromDefine(
+function extractMessagesFromDefine(
   properties: ts.NodeArray<ts.ObjectLiteralElementLike>,
   options: Readonly<ExtOptions>,
 ) {
   properties.forEach(prop => {
-    if (ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name)) {
+    // (ts.isIdentifier(prop.name) || ts.isStringLiteral(prop.name) || ts.isComputedPropertyName(prop.name))
+    if (ts.isPropertyAssignment(prop)) {
       if (ts.isObjectLiteralExpression(prop.initializer)) {
         extractMessageFromProps(prop.initializer.properties, options);
       }
@@ -63,7 +64,7 @@ function extractFromCall(node: ts.CallExpression, options: Readonly<ExtOptions>)
     const argument = node.arguments[0];
 
     if (argument && ts.isObjectLiteralExpression(argument)) {
-      if (defineFunctionNames.includes(funcName)) extractMessageFromDefine(argument.properties, options);
+      if (defineFunctionNames.includes(funcName)) extractMessagesFromDefine(argument.properties, options);
       else extractMessageFromProps(argument.properties, options);
     }
   }

@@ -20,6 +20,12 @@ describe('parser', () => {
     expect(parse(`defineMessages({title: {id: 'title', message: 'Title'}});`)).toEqual(RESULT);
     expect(parse(`defineMessages({title: {id: "title", message: "Title"}});`)).toEqual(RESULT);
     expect(parse('defineMessages({title: {id: `title`, message: `Title`}});')).toEqual(RESULT);
+    expect(parse(
+      'defineMessages({title: {id: `title`, message: `Title`}, desc: {id: `desc`, message: `Description`}});',
+    )).toEqual({ ...RESULT, 'desc': 'Description' });
+    expect(parse(`defineMessages({'title': {id: 'title', message: 'Title'}});`)).toEqual(RESULT);
+    expect(parse('defineMessages({[`title`]: {id: "title", message: "Title"}});')).toEqual(RESULT);
+    expect(parse('defineMessages({[Enum.key]: {id: "title", message: "Title"}});')).toEqual(RESULT);
   });
 
   it('should use custom options', function() {
