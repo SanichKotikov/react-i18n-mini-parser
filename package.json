@@ -1,6 +1,6 @@
 {
   "name": "react-i18n-mini-parser",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "NodeJS module for extracting i18n (react-i18n-mini) messages",
   "main": "lib/index.js",
   "sideEffects": false,
