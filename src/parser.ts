@@ -1,5 +1,5 @@
 import ts from 'typescript';
-import { getName, isJsx, isString } from './utils';
+import { concatString, getName, isJsx, isString } from './utils';
 import type { ExtOptions, Message, Options } from './types';
 
 const TS_OPTIONS: ts.CompilerOptions = {
@@ -23,9 +23,9 @@ function extractMessageFromProps(
   let id = '';
   let message = '';
 
-  function extract(name: string, node: { text: string }): void {
-    if (name === options.idPropName) id = node.text;
-    else if (name === options.messagePropName) message = node.text;
+  function extract(name: string, text: string): void {
+    if (name === options.idPropName) id = text;
+    else if (name === options.messagePropName) message = text;
   }
 
   for (const prop of properties) {
@@ -33,9 +33,20 @@ function extractMessageFromProps(
     const { name, initializer } = prop;
 
     if (ts.isIdentifier(name) && initializer) {
-      if (ts.isJsxExpression(initializer) && initializer.expression && isString(initializer.expression))
-        extract(name.text, initializer.expression);
-      else if (isString(initializer)) extract(name.text, initializer);
+      const node: ts.Expression =
+        ts.isJsxExpression(initializer) && initializer.expression
+          ? initializer.expression
+          : initializer;
+
+      if (isString(node)) {
+        extract(name.text, node.text);
+        continue;
+      }
+
+      if (ts.isBinaryExpression(node)) {
+        const [result, isStatic] = concatString(node);
+        if (isStatic) extract(name.text, result);
+      }
     }
   }
 

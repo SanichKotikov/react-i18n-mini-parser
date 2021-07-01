@@ -8,6 +8,8 @@ describe('parser', () => {
     expect(parse(`t({ id: 'title', message: 'Title' })`)).toEqual(RESULT);
     expect(parse('i18n.t({ id: "title", message: "Title" })')).toEqual(RESULT);
     expect(parse('i18n.t({ id: `title`, message: `Title` })')).toEqual(RESULT);
+    expect(parse(`i18n.t({ id: 'title', message: 'Ti' + 'tle' })`)).toEqual(RESULT);
+    expect(parse(`i18n.t({ id: 'title', message: 'Ti' + 't' + 'le' })`)).toEqual(RESULT);
   });
 
   it('should extract messages from react components', function() {
@@ -15,12 +17,14 @@ describe('parser', () => {
     expect(parse('<Text id="title" message="Title" />')).toEqual(RESULT);
     expect(parse(`<Text id={'title'} message={'Title'} />`)).toEqual(RESULT);
     expect(parse('<Text id={`title`} message={`Title`} />')).toEqual(RESULT);
+    expect(parse(`<Text id={'title'} message={'Ti' + 'tle'} />`)).toEqual(RESULT);
   });
 
   it('should extract messages from define function', function() {
     expect(parse(`defineMessages({title: {id: 'title', message: 'Title'}});`)).toEqual(RESULT);
     expect(parse(`defineMessages({title: {id: "title", message: "Title"}});`)).toEqual(RESULT);
     expect(parse('defineMessages({title: {id: `title`, message: `Title`}});')).toEqual(RESULT);
+    expect(parse(`defineMessages({title: {id: 'title', message: 'Ti' + 'tle'}});`)).toEqual(RESULT);
     expect(parse(
       'defineMessages({title: {id: `title`, message: `Title`}, desc: {id: `desc`, message: `Description`}});',
     )).toEqual([...RESULT, { id: 'desc', message: 'Description' }]);

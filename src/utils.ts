@@ -18,6 +18,16 @@ export function getName(node: ts.CallExpression | JsxElement): string {
   return '';
 }
 
+export function concatString({ left, right }: ts.BinaryExpression): [result: string, isStatic: boolean] {
+  if (!ts.isStringLiteral(right)) return ['', false];
+  if (ts.isStringLiteral(left)) return [left.text + right.text, true];
+  if (ts.isBinaryExpression(left)) {
+    const [result, isStatic] = concatString(left);
+    return [result + right.text, isStatic];
+  }
+  return ['', false];
+}
+
 export function sort(messages: Readonly<Messages>): Readonly<Messages> {
   return Object.keys(messages)
     .sort((a, b) => a.localeCompare(b))
