@@ -1,7 +1,8 @@
 import { parse } from './parser';
+import type { Message } from './types';
 
 describe('parser', () => {
-  const RESULT = { 'title': 'Title' };
+  const RESULT: readonly Message[] = [{ id: 'title', message: 'Title' }];
 
   it('should extract messages from function calls', function() {
     expect(parse(`t({ id: 'title', message: 'Title' })`)).toEqual(RESULT);
@@ -22,7 +23,7 @@ describe('parser', () => {
     expect(parse('defineMessages({title: {id: `title`, message: `Title`}});')).toEqual(RESULT);
     expect(parse(
       'defineMessages({title: {id: `title`, message: `Title`}, desc: {id: `desc`, message: `Description`}});',
-    )).toEqual({ ...RESULT, 'desc': 'Description' });
+    )).toEqual([...RESULT, { id: 'desc', message: 'Description' }]);
     expect(parse(`defineMessages({'title': {id: 'title', message: 'Title'}});`)).toEqual(RESULT);
     expect(parse('defineMessages({[`title`]: {id: "title", message: "Title"}});')).toEqual(RESULT);
     expect(parse('defineMessages({[Enum.key]: {id: "title", message: "Title"}});')).toEqual(RESULT);

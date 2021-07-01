@@ -1,3 +1,17 @@
+export enum ErrorType {
+  duplicateId = 'dup_id',
+  duplicateMessage = 'dup_msg',
+}
+
+export interface Message {
+  id: string;
+  message: string;
+}
+
+export interface MessageError extends Message {
+  type: ErrorType;
+}
+
 export type Messages = Record<string, string>;
 
 export interface Options {
@@ -8,5 +22,10 @@ export interface Options {
 }
 
 export interface ExtOptions extends Options {
-  onMessageFound: (id: string, message: string) => void;
+  onMessageFound: (message: Message) => void;
+}
+
+export interface ParserResult {
+  messages: Readonly<Messages>;
+  errors: readonly MessageError[];
 }

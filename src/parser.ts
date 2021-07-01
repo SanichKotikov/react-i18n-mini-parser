@@ -1,6 +1,6 @@
 import ts from 'typescript';
 import { getName, isJsx, isString } from './utils';
-import type { ExtOptions, Messages, Options } from './types';
+import type { ExtOptions, Message, Options } from './types';
 
 const TS_OPTIONS: ts.CompilerOptions = {
   allowJs: true,
@@ -39,7 +39,7 @@ function extractMessageFromProps(
     }
   }
 
-  if (id && message) options.onMessageFound(id, message);
+  if (id && message) options.onMessageFound({ id, message });
 }
 
 function extractMessagesFromDefine(
@@ -85,14 +85,14 @@ function getVisitor(context: ts.TransformationContext, options: Readonly<ExtOpti
   return visitor;
 }
 
-export function parse(source: string, options?: Partial<Readonly<Options>>): Readonly<Messages> {
-  const messages: Messages = {};
+export function parse(source: string, options?: Partial<Readonly<Options>>): readonly Message[] {
+  const messages: Message[] = [];
 
   const opts: Readonly<ExtOptions> = {
     ...DEFAULT_OPTIONS,
     ...options,
-    onMessageFound: (id: string, message: string): void => {
-      messages[id] = message;
+    onMessageFound: (message: Message): void => {
+      messages.push(message);
     },
   };
 
