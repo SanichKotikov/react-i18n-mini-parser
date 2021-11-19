@@ -1,8 +1,11 @@
 # react-i18n-mini-parser
 
-NodeJS module for extracting default i18n messages from a project files where
-using [react-i18n-mini](https://www.npmjs.com/package/react-i18n-mini)
-or [solid-i18n](https://github.com/SanichKotikov/solid-i18n).
+NodeJS module for extracting i18n messages.
+
+Can be used with:
+
+- [react-i18n-mini](https://www.npmjs.com/package/react-i18n-mini)
+- [solid-i18n](https://www.npmjs.com/package/solid-i18n).
 
 ### Example of usage
 
