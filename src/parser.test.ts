@@ -2,9 +2,12 @@ import { parse } from './parser';
 import type { Message } from './types';
 
 describe('parser', () => {
+  const NO_ID_RESULT: readonly Message[] = [{ id: 'Title', message: 'Title' }];
   const RESULT: readonly Message[] = [{ id: 'title', message: 'Title' }];
 
   it('should extract messages from function calls', function() {
+    expect(parse(`t('Title')`)).toEqual(NO_ID_RESULT);
+    expect(parse(`t({ message: 'Title' })`)).toEqual(NO_ID_RESULT);
     expect(parse(`t({ id: 'title', message: 'Title' })`)).toEqual(RESULT);
     expect(parse('i18n.t({ id: "title", message: "Title" })')).toEqual(RESULT);
     expect(parse('i18n.t({ id: `title`, message: `Title` })')).toEqual(RESULT);
@@ -13,6 +16,7 @@ describe('parser', () => {
   });
 
   it('should extract messages from react components', function() {
+    expect(parse(`<Text message="Title" />`)).toEqual(NO_ID_RESULT);
     expect(parse(`<Text id="title" message="Title" />`)).toEqual(RESULT);
     expect(parse('<Text id="title" message="Title" />')).toEqual(RESULT);
     expect(parse(`<Text id={'title'} message={'Title'} />`)).toEqual(RESULT);
@@ -21,6 +25,7 @@ describe('parser', () => {
   });
 
   it('should extract messages from define function', function() {
+    expect(parse(`defineMessages({title: {message: 'Title'}});`)).toEqual(NO_ID_RESULT);
     expect(parse(`defineMessages({title: {id: 'title', message: 'Title'}});`)).toEqual(RESULT);
     expect(parse(`defineMessages({title: {id: "title", message: "Title"}});`)).toEqual(RESULT);
     expect(parse('defineMessages({title: {id: `title`, message: `Title`}});')).toEqual(RESULT);

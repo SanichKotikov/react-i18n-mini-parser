@@ -50,7 +50,7 @@ function extractMessageFromProps(
     }
   }
 
-  if (id && message) options.onMessageFound({ id, message });
+  if (message) options.onMessageFound({ id: id || message, message });
 }
 
 function extractMessagesFromDefine(
@@ -69,8 +69,11 @@ function extractFromCall(node: ts.CallExpression, options: Readonly<ExtOptions>)
 
   if (translateNames.includes(funcName) || defineFunctionNames.includes(funcName)) {
     const argument = node.arguments[0];
+    if (!argument) return;
 
-    if (argument && ts.isObjectLiteralExpression(argument)) {
+    if (isString(argument))
+      options.onMessageFound({ id: argument.text, message: argument.text });
+    else if (ts.isObjectLiteralExpression(argument)) {
       if (defineFunctionNames.includes(funcName)) extractMessagesFromDefine(argument.properties, options);
       else extractMessageFromProps(argument.properties, options);
     }
