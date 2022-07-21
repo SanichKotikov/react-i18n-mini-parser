@@ -24,4 +24,4 @@ glob("**/*.+(js|ts|tsx)", function(error, files) {
 });
 ```
 
-Note: `glog` is using as an example. You can use any tool or write your own to find all files that need to be parsed.
+Note: `glob` is using as an example. You can use any tool or write your own to find all files that need to be parsed.
