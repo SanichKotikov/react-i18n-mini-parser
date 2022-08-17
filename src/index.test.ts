@@ -13,6 +13,16 @@ describe('extract', () => {
       messages: { title: 'Title', other: 'Other' },
       errors: [],
     });
+
+    expect(
+      extract([
+        `t({ id: 'title', message: 'Title' })`,
+        `t({ id: 'other', message: 'Title' })`,
+      ], {withDuplicateMessage: true}),
+    ).toEqual<ParserResult>({
+      messages: { title: 'Title', other: 'Title' },
+      errors: [],
+    });
   });
 
   it('should returns errors', function() {

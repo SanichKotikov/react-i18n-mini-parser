@@ -21,13 +21,15 @@ export function extract(
       });
     });
 
-  const ids = Object.keys(messages);
+  if (!options?.withDuplicateMessage) {
+    const ids = Object.keys(messages);
 
-  ids.forEach((id) => {
-    if (ids.some(key => key !== id && messages[id] === messages[key])) {
-      errors.push({ type: ErrorType.duplicateMessage, id, message: messages[id]! });
-    }
-  });
+    ids.forEach((id) => {
+      if (ids.some(key => key !== id && messages[id] === messages[key])) {
+        errors.push({ type: ErrorType.duplicateMessage, id, message: messages[id]! });
+      }
+    });
+  }
 
   return { messages: sort(messages), errors };
 }

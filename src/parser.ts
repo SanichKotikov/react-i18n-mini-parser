@@ -14,6 +14,7 @@ const DEFAULT_OPTIONS: Readonly<Options> = {
   messagePropName: 'message',
   translateNames: ['t', 'Text'],
   defineFunctionNames: ['defineMessages'],
+  withDuplicateMessage: false,
 };
 
 function extractMessageFromProps(
