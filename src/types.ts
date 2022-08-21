@@ -19,6 +19,7 @@ export interface Options {
   messagePropName: string;
   translateNames: readonly string[];
   defineFunctionNames: readonly string[];
+  withDuplicateMessage: boolean;
 }
 
 export interface ExtOptions extends Options {
